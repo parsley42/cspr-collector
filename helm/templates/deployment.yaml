@@ -32,7 +32,10 @@ spec:
         - name: {{ .Values.app.name }}
           image: "{{ .Values.appImage.repository }}:{{ .Values.appImage.tag }}"
           command: ["/app/cspr-collector"]
-          args: ["-output-stdout"]
+          args:
+          - "-output-stdout"
+          - "-host"
+          - "0.0.0.0:{{ .Values.service.port }}"
           ports:
             - containerPort: {{ .Values.app.port }}
           volumeMounts:
