@@ -31,6 +31,7 @@ spec:
       containers:
         - name: {{ .Values.app.name }}
           image: "{{ .Values.appImage.repository }}:{{ .Values.appImage.tag }}"
+          command: ["/app/cspr-collector"]
           args: ["-output-stdout"]
           ports:
             - containerPort: {{ .Values.app.port }}
