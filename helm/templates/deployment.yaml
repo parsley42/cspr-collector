@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+    spec:
+      volumes:
+        - name: app-volume
+          emptyDir: {}
+      initContainers:
+        - name: build-container
+          image: "{{ .Values.buildImage.repository }}:{{ .Values.buildImage.tag }}"
+          volumeMounts:
+            - name: app-volume
+              mountPath: /app
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              set -e;
+              git clone --branch {{ .Values.app.branch }} --depth 1 {{ .Values.app.repository }} /src;
+              cd /src;
+              CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/cspr-collector cmd/cspr-collector/main.go;
+      containers:
+        - name: {{ .Values.app.name }}
+          image: "{{ .Values.appImage.repository }}:{{ .Values.appImage.tag }}"
+          args: ["-output-stdout"]
+          ports:
+            - containerPort: {{ .Values.app.port }}
+          volumeMounts:
+            - name: app-volume
+              mountPath: /app
